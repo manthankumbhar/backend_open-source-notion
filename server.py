@@ -10,9 +10,11 @@ from uuid import uuid4
 import secrets
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
+cors = CORS(app)
 
 db = SQLAlchemy(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
@@ -82,6 +84,7 @@ def send_reset_password_mail(email, token):
         return jsonify({'error':str(e.message)}), 400
     
 @app.route('/signup', methods=['POST'])
+@cross_origin()
 def signup():
     data = request.get_json()
     email = data['email']
@@ -109,6 +112,7 @@ def signup():
         return jsonify({'error': str(e.message)}), 400
 
 @app.route('/signin', methods=['POST'])
+@cross_origin()
 def signin():
     data = request.get_json()
     email = data['email']
@@ -129,6 +133,7 @@ def signin():
         return jsonify({'error': str(e.message)}), 400
 
 @app.route('/reset-password', methods=['POST'])
+@cross_origin()
 def send_reset_password_link():
     data = request.get_json()
     if data['email'] == "" or None:
@@ -168,6 +173,7 @@ def send_reset_password_link():
                 return jsonify({'error':str(e.message)}), 400
 
 @app.route('/reset-password/<token>', methods=['GET'])
+@cross_origin()
 def get_reset_password(token):
     data_from_db = token_valid_check(token)
     if data_from_db is None:
@@ -179,6 +185,7 @@ def get_reset_password(token):
     return render_template('reset-password.html', token = token), 200
 
 @app.route('/reset-password/<token>', methods=['POST'])
+@cross_origin()
 def post_reset_password(token):
     data_from_db = token_valid_check(token)
     if data_from_db is None:
@@ -202,6 +209,7 @@ def post_reset_password(token):
         return jsonify({'error':str(e.message)}), 400
 
 @app.route('/refresh-tokens', methods=['POST'])
+@cross_origin()
 def refresh_tokens():    
     data = request.get_json()
     token_from_client = data['refreshToken']
