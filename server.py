@@ -71,7 +71,7 @@ def send_reset_password_mail(email, token):
     to_email = email
     subject = 'Reset password link'
     content = 'To reset your password'
-    html_content = 'To reset your password <a href="http://localhost:5000/reset-password/%s">click here</a>' % token
+    html_content = 'To reset your password <a href="https://backend-notion-clone.herokuapp.com/reset-password/%s">click here</a>' % token
     message = Mail(from_email, to_email, subject, content, html_content)
     try:
         sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
