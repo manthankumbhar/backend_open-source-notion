@@ -28,8 +28,8 @@ class Users(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, unique=True, server_default=sqlalchemy.text("uuid_generate_v4()"),)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now(), server_onupdate=db.func.now())
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.utcnow())
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.utcnow(), server_onupdate=db.func.utcnow())
     reset_password_hash = db.Column(db.String(64), unique=True, nullable=False)
     reset_password_last_requested_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
@@ -147,19 +147,19 @@ def send_reset_password_link():
     if reset_password_last_requested_at is None:        
         try:
             user = db.session.query(Users).filter(Users.email == data['email']).first()
-            user.reset_password_last_requested_at = datetime.datetime.now()
+            user.reset_password_last_requested_at = datetime.datetime.utcnow()
             db.session.commit()
             send_reset_password_mail(data['email'],reset_password_hash)
             return jsonify({'success':'email sent!'}), 200
         except Exception as e:
             return jsonify({'error':str(e.message)}), 400
     if reset_password_last_requested_at is not None:
-        is_new_request = datetime.datetime.now() > reset_password_last_requested_at + datetime.timedelta(minutes=15)
+        is_new_request = datetime.datetime.utcnow() > reset_password_last_requested_at + datetime.timedelta(minutes=15)
         if is_new_request is True:
             try:
                 updated_reset_password_hash = secrets.token_urlsafe(48)
                 user = db.session.query(Users).filter(Users.email == data['email']).first()
-                user.reset_password_last_requested_at = datetime.datetime.now()
+                user.reset_password_last_requested_at = datetime.datetime.utcnow()
                 user.reset_password_hash = updated_reset_password_hash
                 db.session.commit()
                 send_reset_password_mail(data['email'],updated_reset_password_hash)
@@ -180,7 +180,7 @@ def get_reset_password(token):
     if data_from_db is None:
         return jsonify({'error':'token is invalid'}), 400
     reset_password_last_requested_at = data_from_db['reset_password_last_requested_at']
-    is_token_expired = datetime.datetime.now() > reset_password_last_requested_at + datetime.timedelta(minutes=15)
+    is_token_expired = datetime.datetime.utcnow() > reset_password_last_requested_at + datetime.timedelta(minutes=15)
     if is_token_expired is True:
         return jsonify({'error':'link has expired'}), 400
     return render_template('reset-password.html', token = token), 200
@@ -192,7 +192,7 @@ def post_reset_password(token):
     if data_from_db is None:
         return jsonify({'error':'token is invalid'}), 400
     reset_password_last_requested_at = data_from_db['reset_password_last_requested_at']
-    is_token_expired = datetime.datetime.now() > reset_password_last_requested_at + datetime.timedelta(minutes=15)
+    is_token_expired = datetime.datetime.utcnow() > reset_password_last_requested_at + datetime.timedelta(minutes=15)
     if is_token_expired is True:
         return jsonify({'error':'link has expired'}), 400
     new_password = request.form['password']
