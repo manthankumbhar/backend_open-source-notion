@@ -28,8 +28,8 @@ class Users(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, unique=True, server_default=sqlalchemy.text("uuid_generate_v4()"),)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=datetime.datetime.utcnow())
-    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=datetime.datetime.utcnow(), server_onupdate=datetime.datetime.utcnow())
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now(), server_onupdate=db.func.now())
     reset_password_hash = db.Column(db.String(64), unique=True, nullable=False)
     reset_password_last_requested_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
