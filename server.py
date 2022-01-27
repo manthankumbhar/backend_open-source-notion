@@ -106,8 +106,8 @@ def signup():
         db.session.add(user)
         db.session.commit()
         user_id = get_data_by_email(email)['id']
-        accessToken = jwt.encode({'userid': str(user_id), 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['ACCESS_TOKEN_SECRET'])
-        refreshToken = jwt.encode({'userid': str(user_id), 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24*365)}, app.config['REFRESH_TOKEN_SECRET'])
+        accessToken = jwt.encode({'userid': str(user_id), 'exp': datetime.datetime.now() + datetime.timedelta(minutes=30)}, app.config['ACCESS_TOKEN_SECRET'])
+        refreshToken = jwt.encode({'userid': str(user_id), 'exp': datetime.datetime.now() + datetime.timedelta(hours=24*365)}, app.config['REFRESH_TOKEN_SECRET'])
         return jsonify({'accessToken':accessToken.decode('UTF-8'), 'refreshToken': refreshToken.decode('UTF-8')}), 200
     except Exception as e:
         return jsonify({'error': str(e.message)}), 400
@@ -125,8 +125,8 @@ def signin():
         return jsonify({'error':"user doesn't exist"}), 400
     try:
         if bcrypt.check_password_hash(data_from_db['password'], password) == True:
-            accessToken = jwt.encode({'userid': str(data_from_db['id']), 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['ACCESS_TOKEN_SECRET'])            
-            refreshToken = jwt.encode({'userid': str(data_from_db['id']), 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24*365)}, app.config['REFRESH_TOKEN_SECRET'])            
+            accessToken = jwt.encode({'userid': str(data_from_db['id']), 'exp': datetime.datetime.now() + datetime.timedelta(minutes=30)}, app.config['ACCESS_TOKEN_SECRET'])            
+            refreshToken = jwt.encode({'userid': str(data_from_db['id']), 'exp': datetime.datetime.now() + datetime.timedelta(hours=24*365)}, app.config['REFRESH_TOKEN_SECRET'])            
             return jsonify({'accessToken':accessToken.decode('UTF-8'), 'refreshToken': refreshToken.decode('UTF-8')}), 200
         else:
             return jsonify({'error':'incorrect email or password'}), 400
@@ -147,19 +147,19 @@ def send_reset_password_link():
     if reset_password_last_requested_at is None:        
         try:
             user = db.session.query(Users).filter(Users.email == data['email']).first()
-            user.reset_password_last_requested_at = datetime.datetime.utcnow()
+            user.reset_password_last_requested_at = datetime.datetime.now()
             db.session.commit()
             send_reset_password_mail(data['email'],reset_password_hash)
             return jsonify({'success':'email sent!'}), 200
         except Exception as e:
             return jsonify({'error':str(e.message)}), 400
     if reset_password_last_requested_at is not None:
-        is_new_request = datetime.datetime.utcnow() > reset_password_last_requested_at + datetime.timedelta(minutes=15)
+        is_new_request = datetime.datetime.now() > reset_password_last_requested_at + datetime.timedelta(minutes=15)
         if is_new_request is True:
             try:
                 updated_reset_password_hash = secrets.token_urlsafe(48)
                 user = db.session.query(Users).filter(Users.email == data['email']).first()
-                user.reset_password_last_requested_at = datetime.datetime.utcnow()
+                user.reset_password_last_requested_at = datetime.datetime.now()
                 user.reset_password_hash = updated_reset_password_hash
                 db.session.commit()
                 send_reset_password_mail(data['email'],updated_reset_password_hash)
@@ -180,7 +180,7 @@ def get_reset_password(token):
     if data_from_db is None:
         return jsonify({'error':'token is invalid'}), 400
     reset_password_last_requested_at = data_from_db['reset_password_last_requested_at']
-    is_token_expired = datetime.datetime.utcnow() > reset_password_last_requested_at + datetime.timedelta(minutes=15)
+    is_token_expired = datetime.datetime.now() > reset_password_last_requested_at + datetime.timedelta(minutes=15)
     if is_token_expired is True:
         return jsonify({'error':'link has expired'}), 400
     return render_template('reset-password.html', token = token), 200
@@ -192,7 +192,7 @@ def post_reset_password(token):
     if data_from_db is None:
         return jsonify({'error':'token is invalid'}), 400
     reset_password_last_requested_at = data_from_db['reset_password_last_requested_at']
-    is_token_expired = datetime.datetime.utcnow() > reset_password_last_requested_at + datetime.timedelta(minutes=15)
+    is_token_expired = datetime.datetime.now() > reset_password_last_requested_at + datetime.timedelta(minutes=15)
     if is_token_expired is True:
         return jsonify({'error':'link has expired'}), 400
     new_password = request.form['password']
@@ -219,8 +219,8 @@ def refresh_tokens():
     try: 
         is_token_valid = jwt.decode(token_from_client, app.config['REFRESH_TOKEN_SECRET'], algorithms=["HS256"])
         user_id = is_token_valid['userid']
-        accessToken = jwt.encode({'userid': str(user_id), 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['ACCESS_TOKEN_SECRET'])            
-        refreshToken = jwt.encode({'userid': str(user_id), 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24*365)}, app.config['REFRESH_TOKEN_SECRET'])
+        accessToken = jwt.encode({'userid': str(user_id), 'exp': datetime.datetime.now() + datetime.timedelta(minutes=30)}, app.config['ACCESS_TOKEN_SECRET'])            
+        refreshToken = jwt.encode({'userid': str(user_id), 'exp': datetime.datetime.now() + datetime.timedelta(hours=24*365)}, app.config['REFRESH_TOKEN_SECRET'])
         return jsonify({'accessToken':accessToken.decode('UTF-8'), 'refreshToken': refreshToken.decode('UTF-8')}), 200
     except:
         return jsonify({'error':'invalid token'}), 400
