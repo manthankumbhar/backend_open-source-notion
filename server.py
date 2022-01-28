@@ -94,7 +94,7 @@ def signup():
         return jsonify({'error':'email or password not entered'}), 400
     data_from_db = get_data_by_email(email)
     if data_from_db is not None:
-        return jsonify({'error':'user already exists!'}), 400    
+        return jsonify({'error':'This email has an existing account.'}), 400    
     hashed_password = bcrypt.generate_password_hash(password, 10).decode('UTF-8')
     reset_password_hash = secrets.token_urlsafe(48)
     try:
@@ -122,14 +122,14 @@ def signin():
         return jsonify({'error':'email or password not entered'}), 400
     data_from_db = get_data_by_email(email)
     if data_from_db is None:
-        return jsonify({'error':"user doesn't exist"}), 400
+        return jsonify({'error':'This email does not have an existing account.'}), 400
     try:
         if bcrypt.check_password_hash(data_from_db['password'], password) == True:
             accessToken = jwt.encode({'userid': str(data_from_db['id']), 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['ACCESS_TOKEN_SECRET'])            
             refreshToken = jwt.encode({'userid': str(data_from_db['id']), 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24*365)}, app.config['REFRESH_TOKEN_SECRET'])            
             return jsonify({'accessToken':accessToken.decode('UTF-8'), 'refreshToken': refreshToken.decode('UTF-8')}), 200
         else:
-            return jsonify({'error':'incorrect email or password'}), 400
+            return jsonify({'error':'Incorrect email or password.'}), 400
     except Exception as e:
         return jsonify({'error': str(e.message)}), 400
 
@@ -141,7 +141,7 @@ def send_reset_password_link():
         return jsonify({'error':'email not entered'}), 400
     data_from_db = get_data_by_email(data['email'])
     if data_from_db is None:
-        return jsonify({'error':"user doesn't exist"}), 400
+        return jsonify({'error':'This email does not have an existing account.'}), 400
     reset_password_last_requested_at = data_from_db['reset_password_last_requested_at']
     reset_password_hash = data_from_db['reset_password_hash']     
     if reset_password_last_requested_at is None:        
@@ -150,9 +150,9 @@ def send_reset_password_link():
             user.reset_password_last_requested_at = datetime.datetime.utcnow()
             db.session.commit()
             send_reset_password_mail(data['email'],reset_password_hash)
-            return jsonify({'success':'email sent!'}), 200
+            return jsonify({'success':'Check your inbox for the link to reset your password.'}), 200
         except Exception as e:
-            return jsonify({'error':str(e.message)}), 400
+            return jsonify({'error':'Internal server error, please try again later'}), 400
     if reset_password_last_requested_at is not None:
         is_new_request = datetime.datetime.utcnow() > reset_password_last_requested_at + datetime.timedelta(minutes=15)
         if is_new_request is True:
@@ -163,15 +163,15 @@ def send_reset_password_link():
                 user.reset_password_hash = updated_reset_password_hash
                 db.session.commit()
                 send_reset_password_mail(data['email'],updated_reset_password_hash)
-                return jsonify({'success':'email sent!'}), 200
+                return jsonify({'success':'Check your inbox for the link to reset your password.'}), 200
             except Exception as e:
-                return jsonify({'error':str(e.message)}), 400
+                return jsonify({'error':'Internal server error, please try again later'}), 400
         else:
             try:
                 send_reset_password_mail(data['email'],reset_password_hash)
-                return jsonify({'success':'email sent!'}), 200
+                return jsonify({'success':'Check your inbox for the link to reset your password.'}), 200
             except Exception as e:
-                return jsonify({'error':str(e.message)}), 400
+                return jsonify({'error':'Internal server error, please try again later'}), 400
 
 @app.route('/reset-password/<token>', methods=['GET'])
 @cross_origin()
@@ -190,14 +190,14 @@ def get_reset_password(token):
 def post_reset_password(token):
     data_from_db = token_valid_check(token)
     if data_from_db is None:
-        return jsonify({'error':'token is invalid'}), 400
+        return jsonify({'error':'Token is invalid'}), 400
     reset_password_last_requested_at = data_from_db['reset_password_last_requested_at']
     is_token_expired = datetime.datetime.utcnow() > reset_password_last_requested_at + datetime.timedelta(minutes=15)
     if is_token_expired is True:
-        return jsonify({'error':'link has expired'}), 400
+        return jsonify({'error':'Link has expired'}), 400
     new_password = request.form['password']
     if new_password == "" or None:
-        return jsonify({'error':'password is not entered'}), 400
+        return jsonify({'error':'Password is not entered'}), 400
     try:
         updated_reset_password_hash = secrets.token_urlsafe(48)
         hashed_new_password = bcrypt.generate_password_hash(new_password, 10).decode('UTF-8')
