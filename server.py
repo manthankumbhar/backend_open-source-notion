@@ -6,10 +6,9 @@ from flask import Flask, jsonify, request, render_template
 from flask_bcrypt import Bcrypt
 import jwt
 import secrets
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 from flask_cors import CORS, cross_origin
 from models.User import db, User
+from sendgrid_config import send_reset_password_mail
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -34,7 +33,7 @@ def hello_world():
 def get_user_by_email(email):
     user = db.session.query(User).filter(User.email == email)
     if user.count() <= 0:
-        return None
+        return None, 200
     if user.count() == 1:
         for i in user:
             return i.__dict__ 
@@ -44,29 +43,12 @@ def get_user_by_email(email):
 def token_valid_check(token):
     user = db.session.query(User).filter(User.reset_password_hash == token)
     if user.count() <= 0:
-        return None
+        return None, 200
     if user.count() == 1:
         for i in user:
-            return i.__dict__ 
+            return i.__dict__
     if user.count() > 1:
         return {'error':'voilates the unique ability!'}, 500
-
-def send_reset_password_mail(email, token):
-    from_email = app.config['SENDGRID_EMAIL']
-    to_email = email
-    subject = 'Reset password link'
-    content = 'To reset your password'
-    html_content = 'To reset your password <a href="https://backend-notion-clone.herokuapp.com/reset-password/%s">click here</a>' % token
-    message = Mail(from_email, to_email, subject, content, html_content)
-    try:
-        sg = SendGridAPIClient(app.config['SENDGRID_API_KEY'])
-        res = sg.send(message)
-        if res.status_code == 202:
-            return jsonify({'success':'email sent!'}), 200
-        else:
-            return jsonify({'error':'please try again later'}), 400            
-    except Exception as e:
-        return jsonify({'error':str(e.message)}), 500
     
 @app.route('/signup', methods=['POST'])
 def signup():
@@ -79,12 +61,10 @@ def signup():
     if data_from_db is not None:
         return jsonify({'error':'This email has an existing account.'}), 400    
     hashed_password = bcrypt.generate_password_hash(password, 10).decode('UTF-8')
-    reset_password_hash = secrets.token_urlsafe(48)
     try:
         user = User(
             email = email,
             password = hashed_password,
-            reset_password_hash = reset_password_hash
         )
         db.session.add(user)
         db.session.commit()
@@ -125,16 +105,18 @@ def send_reset_password_link():
         return jsonify({'error':'This email does not have an existing account.'}), 400
     reset_password_last_requested_at = data_from_db['reset_password_last_requested_at']
     reset_password_hash = data_from_db['reset_password_hash']     
-    if reset_password_last_requested_at is None:        
+    if reset_password_last_requested_at is None and reset_password_hash is None:        
         try:
+            new_reset_password_hash = secrets.token_urlsafe(48)
             user = db.session.query(User).filter(User.email == data['email']).first()
             user.reset_password_last_requested_at = datetime.datetime.utcnow()
+            user.reset_password_hash = new_reset_password_hash
             db.session.commit()
-            send_reset_password_mail(data['email'],reset_password_hash)
+            send_reset_password_mail(data['email'],new_reset_password_hash)
             return jsonify({'success':'Check your inbox for the link to reset your password.'}), 200
         except Exception as e:
             return jsonify({'error':'Internal server error, please try again later'}), 500
-    if reset_password_last_requested_at is not None:
+    if reset_password_last_requested_at is not None and reset_password_hash is not None:
         is_new_request = datetime.datetime.utcnow() > reset_password_last_requested_at + datetime.timedelta(minutes=15)
         if is_new_request is True:
             try:
