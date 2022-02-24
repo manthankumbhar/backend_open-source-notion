@@ -14,8 +14,7 @@ app = Flask(__name__)
 bcrypt = Bcrypt(app)
 cors = CORS(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:postgres@localhost/test_flask'
-# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace("postgresql://", "postgres://", 1) # sqlalchemy documents need the database name to exclude "ql" and this is the best way to remove it
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace("postgresql://", "postgres://", 1) # sqlalchemy documents need the database name to exclude "ql" and this is the best way to remove it
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 with app.app_context():
