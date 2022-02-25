@@ -8,7 +8,7 @@ import jwt
 import secrets
 from flask_cors import CORS, cross_origin
 from models.User import db, User
-from sendgrid_config import send_reset_password_mail
+from sendgrid_helper import send_reset_password_mail
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -30,23 +30,23 @@ def hello_world():
     return jsonify({'success': 'Hello, World!'}), 200    
 
 def get_user_by_email(email):
-    user = db.session.query(User).filter(User.email == email)
-    if user.count() <= 0:
+    users = db.session.query(User).filter(User.email == email)
+    if users.count() <= 0:
         return None
-    if user.count() == 1:
-        for i in user:
-            return i.__dict__ 
-    if user.count() > 1:
+    if users.count() == 1:
+        for i in users:
+            return vars(i)
+    if users.count() > 1:
         return {'error':'voilates the unique ability!'}, 500
 
 def token_valid_check(token):
-    user = db.session.query(User).filter(User.reset_password_hash == token)
-    if user.count() <= 0:
+    users = db.session.query(User).filter(User.reset_password_hash == token)
+    if users.count() <= 0:
         return None
-    if user.count() == 1:
-        for i in user:
-            return i.__dict__
-    if user.count() > 1:
+    if users.count() == 1:
+        for i in users:
+            return vars(i)
+    if users.count() > 1:
         return {'error':'voilates the unique ability!'}, 500
     
 @app.route('/signup', methods=['POST'])
