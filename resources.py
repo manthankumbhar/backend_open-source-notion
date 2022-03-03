@@ -1,15 +1,14 @@
 import datetime
-from flask import jsonify, request
-from server import app
+from __main__ import app
 from sendgrid_helper import send_reset_password_mail
 from state_machine import create_token, create_user, get_user_by_email, token_valid_check, update_reset_password_token, update_user
 from flask_bcrypt import Bcrypt
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 from time import timezone
-from flask import Flask, jsonify, request, render_template
-from flask_bcrypt import Bcrypt
+from flask import jsonify, request, render_template
 import jwt
 import secrets
+from config import config
 
 bcrypt = Bcrypt(app)
 cors = CORS(app)
@@ -127,7 +126,7 @@ def refresh_tokens():
         token_from_client = data['refreshToken']
         if token_from_client == '' or None:
             return jsonify({'error':'empty token'}), 400
-        is_token_valid = jwt.decode(token_from_client, app.config['REFRESH_TOKEN_SECRET'], algorithms=["HS256"])
+        is_token_valid = jwt.decode(token_from_client, config['REFRESH_TOKEN_SECRET'], algorithms=["HS256"])
         user_id = is_token_valid['userid']
         token = create_token(user_id)
         return jsonify(token), 200

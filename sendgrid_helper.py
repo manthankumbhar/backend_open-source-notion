@@ -1,14 +1,12 @@
-from distutils.log import error
-import os
 from flask import jsonify
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-from server import app
+from config import config
 
 def send_reset_password_mail(email, token):
     try:
-        server_link = app.config['SENDGRID_SERVER_LINK']
-        from_email = app.config['SENDGRID_EMAIL']
+        server_link = config['SENDGRID_SERVER_LINK']
+        from_email = config['SENDGRID_EMAIL']
         subject = 'Reset password link'
         content = 'To reset your password'
         html_content = 'To reset your password <a href="%s/reset-password/%s">click here</a>' % (server_link, token)
