@@ -58,6 +58,8 @@ def update_reset_password_token(email, reset_password_hash):
         user.reset_password_last_requested_at = datetime.datetime.utcnow()
         user.reset_password_hash = reset_password_hash
         db.session.commit()
+        updated_user = db.session.query(User).filter(User.email == email).first()
+        return {'updated_user':updated_user}
     except Exception as e:
         raise Exception({'error':str(e.message)})
 
@@ -67,6 +69,8 @@ def update_user(email, password, reset_password_hash):
         user.password = password
         user.reset_password_hash = reset_password_hash
         db.session.commit()
+        updated_user = db.session.query(User).filter(User.email == email).first()
+        return {'updated_user':updated_user}
     except Exception as e:
         raise Exception({'error':str(e.message)})
     
