@@ -23,7 +23,7 @@ def signup():
         data = request.get_json()
         email = data['email']
         password = data['password']
-        if email == "" or None or password == "" or None:
+        if email == "" or email == None or password == "" or password == None:
             return jsonify({'error':'email or password not entered'}), 400
         user = get_user_by_email(email)
         if user is not None:
@@ -42,7 +42,7 @@ def signin():
         data = request.get_json()
         email = data['email']
         password = data['password']
-        if email == "" or None or password == "" or None:
+        if email == "" or email == None or password == "" or password == None:
             return jsonify({'error':'email or password not entered'}), 400
         user = get_user_by_email(email)
         if user is None:
@@ -60,7 +60,7 @@ def send_reset_password_link():
     try:
         data = request.get_json()
         email = data['email']
-        if email == "" or None:
+        if email == "" or email == None:
             return jsonify({'error':'email not entered'}), 400
         user = get_user_by_email(email)
         if user is None:
@@ -110,7 +110,7 @@ def post_reset_password(token):
         if is_token_expired is True:
             return jsonify({'error':'Link has expired'}), 400
         new_password = request.form['password']
-        if new_password == "" or None:
+        if new_password == "" or new_password == None:
             return jsonify({'error':'Password is not entered'}), 400
         hashed_new_password = bcrypt.generate_password_hash(new_password, 10).decode('UTF-8')
         updated_reset_password_hash = secrets.token_urlsafe(48)
@@ -124,7 +124,7 @@ def refresh_tokens():
     try: 
         data = request.get_json()
         token_from_client = data['refreshToken']
-        if token_from_client == '' or None:
+        if token_from_client == "" or token_from_client == None:
             return jsonify({'error':'empty token'}), 400
         is_token_valid = jwt.decode(token_from_client, config['REFRESH_TOKEN_SECRET'], algorithms=["HS256"])
         user_id = is_token_valid['userid']
