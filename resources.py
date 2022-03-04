@@ -1,23 +1,20 @@
 import datetime
-from __main__ import app
 from sendgrid_helper import send_reset_password_mail
 from state_machine import create_token, create_user, get_user_by_email, token_valid_check, update_reset_password_token, update_user
 from flask_bcrypt import Bcrypt
-from flask_cors import CORS
-from time import timezone
-from flask import jsonify, request, render_template
+from flask import jsonify, request, render_template, Blueprint
 import jwt
 import secrets
 from config import config
 
-bcrypt = Bcrypt(app)
-cors = CORS(app)
+resources = Blueprint("resources", __name__, template_folder="templates")
+bcrypt = Bcrypt(None)
 
-@app.route('/', methods=['POST', 'GET'])
+@resources.route('/', methods=['POST', 'GET'])
 def hello_world():
     return jsonify({'success': 'Hello, World!'}), 200    
     
-@app.route('/signup', methods=['POST'])
+@resources.route('/signup', methods=['POST'])
 def signup():
     try:
         data = request.get_json()
@@ -36,7 +33,7 @@ def signup():
     except Exception as e:
         return jsonify({'error': str(e.message)}), 500
 
-@app.route('/signin', methods=['POST'])
+@resources.route('/signin', methods=['POST'])
 def signin():
     try:
         data = request.get_json()
@@ -55,7 +52,7 @@ def signin():
     except Exception as e:
         return jsonify({'error': str(e.message)}), 500
 
-@app.route('/reset-password', methods=['POST'])
+@resources.route('/reset-password', methods=['POST'])
 def send_reset_password_link():
     try:
         data = request.get_json()
@@ -85,7 +82,7 @@ def send_reset_password_link():
     except Exception as e:
         return jsonify({'error':'Internal server error, please try again later'}), 500
 
-@app.route('/reset-password/<token>', methods=['GET'])
+@resources.route('/reset-password/<token>', methods=['GET'])
 def get_reset_password(token):
     try:
         user = token_valid_check(token)
@@ -99,7 +96,7 @@ def get_reset_password(token):
     except Exception as e:
         return jsonify({'error':str(e.message)}), 500
 
-@app.route('/reset-password/<token>', methods=['POST'])
+@resources.route('/reset-password/<token>', methods=['POST'])
 def post_reset_password(token):
     try:
         user = token_valid_check(token)
@@ -119,7 +116,7 @@ def post_reset_password(token):
     except Exception as e:
         return jsonify({'error':str(e.message)}), 500
 
-@app.route('/refresh-token', methods=['POST'])
+@resources.route('/refresh-token', methods=['POST'])
 def refresh_tokens():    
     try: 
         data = request.get_json()
