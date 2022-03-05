@@ -1,8 +1,8 @@
 import os
 
 config = {
-    'SQLALCHEMY_DATABASE_URI': os.environ.get('DATABASE_URL'),
-    'SQLALCHEMY_TRACK_MODIFICATIONS':False,
+    'DATABASE_URL': os.environ.get('DATABASE_URL'),
+    'DATABASE_TRACK_MODIFICATIONS':os.environ.get('DATABASE_TRACK_MODIFICATIONS'),
     'ACCESS_TOKEN_SECRET':os.environ.get('ACCESS_TOKEN_SECRET'),
     'REFRESH_TOKEN_SECRET':os.environ.get('REFRESH_TOKEN_SECRET'),
     'SENDGRID_EMAIL':os.environ.get('SENDGRID_EMAIL'),
@@ -11,6 +11,6 @@ config = {
     'DEBUG': os.environ.get('DEBUG'),
 }
 
-for i in config.values():
-    if i == "" or i == None:
+for i in config:
+    if i not in os.environ:
         raise Exception({'error':'environment variable not defined'})
