@@ -1,5 +1,5 @@
 from flask import Flask
-from models.User import db
+from models.db import db
 from config import config
 from flask_cors import CORS
 from resources import resources

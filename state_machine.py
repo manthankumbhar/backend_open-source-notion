@@ -1,7 +1,8 @@
 import datetime
 from config import config
 from flask import jsonify
-from models.User import User, db
+from models.db import db
+from models.User import User
 import jwt
 
 def get_user_by_email(email):
