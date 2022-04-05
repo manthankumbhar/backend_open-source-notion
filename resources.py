@@ -1,6 +1,6 @@
 import datetime
 from sendgrid_helper import send_reset_password_mail
-from state_machine import create_token, create_user, get_user_by_email, token_valid_check, update_reset_password_token, update_user
+from state_machine import create_document, create_token, create_user, get_all_documents_by_user_id, get_document_by_document_id, get_user_by_email, get_user_by_user_id, token_valid_check, update_reset_password_token, update_user
 from flask_bcrypt import Bcrypt
 from flask import jsonify, request, render_template, Blueprint
 import jwt
@@ -129,3 +129,29 @@ def refresh_tokens():
         return jsonify(token), 200
     except:
         return jsonify({'error':'invalid token'}), 400
+
+@resources.route('/documents', methods=['POST'])
+def create_documents():
+    try:
+        auth_header = request.headers.get('Authorization')            
+        user_id = token_valid_check(auth_header)
+        user = get_user_by_user_id(user_id)
+        if user is None:
+            return jsonify({'message':'Invalid user_id'}), 400
+        document_id = create_document(user_id)
+        document_row = get_document_by_document_id(document_id)
+        return jsonify(repr(document_row)), 200
+    except:
+        return jsonify({'message':'Internal server error, please try again later.'}), 500
+
+@resources.route('/documents', methods=['GET'])
+def get_documents():
+    try:
+        args = request.args
+        user_id = args.get('user_id')
+        if user_id == "" or user_id == None:
+            return jsonify({'message':'user_id not entered.'}), 400
+        document_id_array = get_all_documents_by_user_id(user_id)
+        return jsonify(document_id_array), 200
+    except:
+        return jsonify({'message':'Internal server error, please try again later.'}), 500
