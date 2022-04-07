@@ -89,7 +89,7 @@ def get_user_by_user_id(user_id):
     except Exception as e:
         raise Exception({'error':str(e.message)})
     
-def create_document(user_id):
+def upsert_document(user_id):
     try:
         document = Document(
             user_id = user_id
@@ -100,7 +100,7 @@ def create_document(user_id):
     except Exception as e:
         raise Exception({'error':str(e.message)})
 
-def get_document_by_document_id(id):
+def get_document_by_id(id):
     try:
         documents = db.session.query(Document).filter(Document.id == id)
         if documents.count() <= 0:
@@ -117,19 +117,17 @@ def token_valid_check(auth_header):
     try: 
         auth_token = auth_header.split(' ')[1]
         if auth_token == "" or auth_token == None:
-            return {'message':'Authorization token empty'}
+            raise Exception({'message':'Authorization token empty'})
         decoded_token = jwt.decode(auth_token, config['ACCESS_TOKEN_SECRET'], algorithms=["HS256"])
-        if decoded_token['userid'] == "" or decoded_token['userid'] == None:
-            raise Exception({'error':'user_id not found'})
-        return decoded_token['userid']
+        return decoded_token
     except:
         raise Exception({'error':'invalid token'})
 
 def get_all_documents_by_user_id(user_id):
     try:
-        document = db.session.query(Document).filter(Document.user_id == user_id).all()
+        documents = db.session.query(Document).filter(Document.user_id == user_id).all()
         arr = [];
-        for i in document:
+        for i in documents:
             arr.append(vars(i)['id'])
         return arr
     except Exception as e:
