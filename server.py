@@ -3,9 +3,11 @@ from models.db import db
 from config import config
 from flask_cors import CORS
 from resources import resources
+from documents.resources import documents
 
 app = Flask(__name__)
 app.register_blueprint(resources, url_prefix="")
+app.register_blueprint(documents, url_prefix="")
 cors = CORS(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = config['DATABASE_URL'].replace("postgres://", "postgresql://", 1) # sqlalchemy documents need the database name to include "ql" and this is the best way to remove it
