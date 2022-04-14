@@ -1,19 +1,20 @@
+from functools import wraps
 from flask import jsonify, request
 import documents.state_machine as state_machine
 
-def auth(func):
-    def inner():
+def authenticate_user(func):
+    @wraps(func)
+    def wrapper():
         auth_header = request.headers.get('Authorization')
         payload = state_machine.token_valid_check(auth_header)
         return func(payload)
-    return inner
+    return wrapper
 
-def utils(func):
-    def inner():
+def server_error_check(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
         try: 
-            return func()
+            return func(*args, **kwargs)
         except:
             return jsonify({'message':'Something went wrong.'}), 500
-    # Causing problems without renaming the function name below - found this solution on stackoverflow
-    inner.__name__ = func.__name__
-    return inner
+    return wrapper
