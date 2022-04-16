@@ -50,5 +50,5 @@ def get_all_documents_by_user_id(user_id):
     documents = db.session.query(Document).filter(Document.user_id == user_id).all()
     document_id_array = []
     for document in documents:
-        document_id_array.append(vars(document)['id'])
+        document_id_array.append({'id':vars(document)['id'], 'name':vars(document)['name']})
     return document_id_array
