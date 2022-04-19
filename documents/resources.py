@@ -15,7 +15,9 @@ def upsert_documents(payload):
 
 @documents.route('', methods=['GET'])
 @utils.server_error_check
+@utils.authenticate_user
 def get_documents():
+    # print(payload)
     args = request.args
     user_id = args.get('user_id')
     document_id_array = state_machine.get_all_documents_by_user_id(user_id)

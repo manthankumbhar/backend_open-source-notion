@@ -1,7 +1,5 @@
-from config import config
 from models.db import db
 from models.User import User
-import jwt
 from models.Document import Document
 
 def get_user_by_user_id(user_id):
@@ -32,13 +30,6 @@ def get_document_by_id(id):
             return vars(i)
     if documents.count() > 1:
         raise Exception({'error':'voilates the unique ability!'})
-
-def token_valid_check(auth_header):
-    auth_token = auth_header.split(' ')[1]
-    if auth_token == "" or auth_token == None:
-        raise Exception({'message':'Authorization token empty'})
-    decoded_token = jwt.decode(auth_token, config['ACCESS_TOKEN_SECRET'], algorithms=["HS256"])
-    return decoded_token
 
 def get_all_documents_by_user_id(user_id):
     documents = db.session.query(Document).filter(Document.user_id == user_id).all()
