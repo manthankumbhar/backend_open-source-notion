@@ -11,7 +11,7 @@ def token_valid_check(auth_header):
     decoded_token = jwt.decode(auth_token, config['ACCESS_TOKEN_SECRET'], algorithms=["HS256"])
     return decoded_token
 
-def authenticate_user(func):
+def authorize_user(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         auth_header = request.headers.get('Authorization')

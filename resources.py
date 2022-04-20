@@ -124,7 +124,7 @@ def refresh_tokens():
         if token_from_client == "" or token_from_client == None:
             return jsonify({'error':'empty token'}), 400
         is_token_valid = jwt.decode(token_from_client, config['REFRESH_TOKEN_SECRET'], algorithms=["HS256"])
-        user_id = is_token_valid['userid']
+        user_id = is_token_valid['user_id']
         token = state_machine.create_token(user_id)
         return jsonify(token), 200
     except:
