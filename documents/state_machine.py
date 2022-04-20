@@ -37,3 +37,9 @@ def get_all_documents_by_user_id(user_id):
     for document in documents:
         document_id_array.append({'id':vars(document)['id'], 'name':vars(document)['name']})
     return document_id_array
+
+def update_document_by_document_id(document_id, data_from_user):
+    document = db.session.query(Document).filter(Document.id == document_id).first()
+    document.data = data_from_user
+    db.session.commit()
+    return {'data updated'}
