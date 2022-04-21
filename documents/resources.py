@@ -39,3 +39,14 @@ def update_documents(document_id, payload):
         jsonify({'message':'Data updated already.'}), 400
     state_machine.update_document_by_document_id(document_id, data_from_user)
     return jsonify({'message':'Data saved.'}), 200
+
+@documents.route('/<document_id>', methods=['GET'])
+@utils.server_error_check
+@utils.authorize_user
+def get_document_data(document_id, payload):
+        user_id_from_authorization_header = payload['user_id']
+        document_row = state_machine.get_document_by_id(document_id)
+        user_id_from_document_id = str(document_row['user_id'])
+        if user_id_from_authorization_header != user_id_from_document_id:
+            return jsonify({'message':'unauthorized request.'}), 400
+        return jsonify(repr(document_row)), 200
