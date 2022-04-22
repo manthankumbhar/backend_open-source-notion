@@ -1,8 +1,11 @@
 import datetime
 from config import config
 from flask import jsonify
-from models.User import User, db
+from models.db import db
+from models.User import User
 import jwt
+from models.Document import Document
+from uuid import UUID
 
 def get_user_by_email(email):
     try:
@@ -43,8 +46,8 @@ def create_user(email, password):
 
 def create_token(user_id):
     try:
-        access_token_payload = {'userid': str(user_id), 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}
-        refresh_token_payload = {'userid': str(user_id), 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24*365)}
+        access_token_payload = {'user_id': str(user_id), 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}
+        refresh_token_payload = {'user_id': str(user_id), 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24*365)}
         access_token = jwt.encode(access_token_payload, config['ACCESS_TOKEN_SECRET'])
         refresh_token = jwt.encode(refresh_token_payload, config['REFRESH_TOKEN_SECRET'])
         return {'access_token':access_token.decode('UTF-8'), 'refresh_token': refresh_token.decode('UTF-8')}
@@ -72,9 +75,3 @@ def update_user(email, password, reset_password_hash):
         return {'updated_user':updated_user}
     except Exception as e:
         raise Exception({'error':str(e.message)})
-    
-
-
-
-
-

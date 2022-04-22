@@ -1,6 +1,6 @@
 import datetime
 from sendgrid_helper import send_reset_password_mail
-from state_machine import create_token, create_user, get_user_by_email, token_valid_check, update_reset_password_token, update_user
+import state_machine 
 from flask_bcrypt import Bcrypt
 from flask import jsonify, request, render_template, Blueprint
 import jwt
@@ -22,13 +22,13 @@ def signup():
         password = data['password']
         if email == "" or email == None or password == "" or password == None:
             return jsonify({'error':'email or password not entered'}), 400
-        user = get_user_by_email(email)
+        user = state_machine.get_user_by_email(email)
         if user is not None:
             return jsonify({'error':'This email has an existing account.'}), 400    
         hashed_password = bcrypt.generate_password_hash(password, 10).decode('UTF-8')
-        create_user(email, hashed_password)
-        user_id = get_user_by_email(email)['id']
-        token = create_token(user_id)
+        state_machine.create_user(email, hashed_password)
+        user_id = state_machine.get_user_by_email(email)['id']
+        token = state_machine.create_token(user_id)
         return jsonify(token), 200
     except Exception as e:
         return jsonify({'error': str(e.message)}), 500
@@ -41,11 +41,11 @@ def signin():
         password = data['password']
         if email == "" or email == None or password == "" or password == None:
             return jsonify({'error':'email or password not entered'}), 400
-        user = get_user_by_email(email)
+        user = state_machine.get_user_by_email(email)
         if user is None:
             return jsonify({'error':'This email does not have an existing account.'}), 400
         if bcrypt.check_password_hash(user['password'], password) == True:
-            token = create_token(user['id'])
+            token = state_machine.create_token(user['id'])
             return jsonify(token), 200
         else:
             return jsonify({'error':'Incorrect email or password.'}), 400
@@ -59,21 +59,21 @@ def send_reset_password_link():
         email = data['email']
         if email == "" or email == None:
             return jsonify({'error':'email not entered'}), 400
-        user = get_user_by_email(email)
+        user = state_machine.get_user_by_email(email)
         if user is None:
             return jsonify({'error':'This email does not have an existing account.'}), 400
         reset_password_last_requested_at = user['reset_password_last_requested_at']
         reset_password_hash = user['reset_password_hash']     
         if reset_password_last_requested_at is None and reset_password_hash is None:        
             new_reset_password_hash = secrets.token_urlsafe(48)
-            update_reset_password_token(email, new_reset_password_hash)
+            state_machine.update_reset_password_token(email, new_reset_password_hash)
             send_reset_password_mail(email,new_reset_password_hash)
             return jsonify({'success':'Check your inbox for the link to reset your password.'}), 200
         else:
             is_new_request = datetime.datetime.utcnow() > reset_password_last_requested_at + datetime.timedelta(minutes=15)
             if is_new_request is True:
                 updated_reset_password_hash = secrets.token_urlsafe(48)
-                update_reset_password_token(email, updated_reset_password_hash)
+                state_machine.update_reset_password_token(email, updated_reset_password_hash)
                 send_reset_password_mail(email,updated_reset_password_hash)
                 return jsonify({'success':'Check your inbox for the link to reset your password.'}), 200
             else:
@@ -85,7 +85,7 @@ def send_reset_password_link():
 @resources.route('/reset-password/<token>', methods=['GET'])
 def get_reset_password(token):
     try:
-        user = token_valid_check(token)
+        user = state_machine.token_valid_check(token)
         if user is None:
             return jsonify({'error':'token is invalid'}), 400
         reset_password_last_requested_at = user['reset_password_last_requested_at']
@@ -99,7 +99,7 @@ def get_reset_password(token):
 @resources.route('/reset-password/<token>', methods=['POST'])
 def post_reset_password(token):
     try:
-        user = token_valid_check(token)
+        user = state_machine.token_valid_check(token)
         if user is None:
             return jsonify({'error':'Token is invalid'}), 400
         reset_password_last_requested_at = user['reset_password_last_requested_at']
@@ -111,7 +111,7 @@ def post_reset_password(token):
             return jsonify({'error':'Password is not entered'}), 400
         hashed_new_password = bcrypt.generate_password_hash(new_password, 10).decode('UTF-8')
         updated_reset_password_hash = secrets.token_urlsafe(48)
-        update_user(user['email'], hashed_new_password, updated_reset_password_hash)
+        state_machine.update_user(user['email'], hashed_new_password, updated_reset_password_hash)
         return jsonify({'success':'reset password successful!'}), 200
     except Exception as e:
         return jsonify({'error':str(e.message)}), 500
@@ -124,8 +124,8 @@ def refresh_tokens():
         if token_from_client == "" or token_from_client == None:
             return jsonify({'error':'empty token'}), 400
         is_token_valid = jwt.decode(token_from_client, config['REFRESH_TOKEN_SECRET'], algorithms=["HS256"])
-        user_id = is_token_valid['userid']
-        token = create_token(user_id)
+        user_id = is_token_valid['user_id']
+        token = state_machine.create_token(user_id)
         return jsonify(token), 200
     except:
         return jsonify({'error':'invalid token'}), 400
