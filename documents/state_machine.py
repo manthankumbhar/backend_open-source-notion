@@ -26,8 +26,7 @@ def get_document_by_id(id):
     if documents.count() <= 0:
         return None
     if documents.count() == 1:
-        for i in documents:
-            return vars(i)
+        return documents[0]
     if documents.count() > 1:
         raise Exception({'error':'voilates the unique ability!'})
 
