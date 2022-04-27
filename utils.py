@@ -1,4 +1,5 @@
 from functools import wraps
+import traceback
 from flask import jsonify, request
 import inspect
 from config import config
@@ -27,5 +28,6 @@ def server_error_check(func):
         try: 
             return func(*args, **kwargs)
         except:
+            traceback.print_exc()
             return jsonify({'message':'Something went wrong.'}), 500
     return wrapper

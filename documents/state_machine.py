@@ -19,15 +19,14 @@ def upsert_document(user_id):
     db.session.add(document)
     db.session.commit()
     document_row = db.session.query(Document).filter(Document.id == document.id).first()
-    return vars(document_row)
+    return document_row
 
 def get_document_by_id(id):
     documents = db.session.query(Document).filter(Document.id == id)
     if documents.count() <= 0:
         return None
     if documents.count() == 1:
-        for i in documents:
-            return vars(i)
+        return documents[0]
     if documents.count() > 1:
         raise Exception({'error':'voilates the unique ability!'})
 

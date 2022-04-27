@@ -11,7 +11,7 @@ def upsert_documents(payload):
     user_id = payload['user_id']
     state_machine.get_user_by_user_id(user_id)
     document_row = state_machine.upsert_document(user_id)
-    return jsonify(repr(document_row)), 200
+    return jsonify(document_row.__serialize__()), 200
 
 @documents.route('', methods=['GET'])
 @utils.server_error_check
@@ -32,7 +32,7 @@ def update_documents(document_id, payload):
     data = request.get_json()
     data_from_user = data['data']
     user_id_from_authorization_header = payload['user_id']
-    user_id_from_document_id = str(state_machine.get_document_by_id(document_id)['user_id'])
+    user_id_from_document_id = str(state_machine.get_document_by_id(document_id).user_id)
     if user_id_from_authorization_header != user_id_from_document_id:
         return jsonify({'message':'unauthorized request.'}), 400
     if data_from_user == "" or data_from_user == None:
@@ -44,9 +44,9 @@ def update_documents(document_id, payload):
 @utils.server_error_check
 @utils.authorize_user
 def get_document_data(document_id, payload):
-        user_id_from_authorization_header = payload['user_id']
-        document_row = state_machine.get_document_by_id(document_id)
-        user_id_from_document_id = str(document_row['user_id'])
-        if user_id_from_authorization_header != user_id_from_document_id:
-            return jsonify({'message':'unauthorized request.'}), 400
-        return jsonify(repr(document_row)), 200
+    user_id_from_authorization_header = payload['user_id']
+    document_row = state_machine.get_document_by_id(document_id)
+    user_id_from_document_id = str(document_row.user_id)
+    if user_id_from_authorization_header != user_id_from_document_id:
+        return jsonify({'message':'unauthorized request.'}), 400
+    return jsonify(document_row.__serialize__()), 200
