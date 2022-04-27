@@ -1,3 +1,4 @@
+import json
 import sqlalchemy
 from models.db import db
 from sqlalchemy.dialects.postgresql.base import UUID
@@ -12,13 +13,15 @@ class Document(db.Model):
     created_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now(), server_onupdate=db.func.now())
 
-    def __init__(self, id, user_id, data, name, created_at, updated_at):
-        self.id = id
-        self.user_id = user_id 
-        self.data = data
-        self.name = name
-        self.created_at = created_at
-        self.updated_at = updated_at 
-    
     def __serialize__(self):
-        return {"id": self.id, "user_id": self.user_id, "data":self.data, "name":self.name, "created_at":self.created_at, "updated_at":self.updated_at}
+        document_row = {"id": self.id, "user_id": self.user_id, "data":self.data, "name":self.name, "created_at": self.created_at, "updated_at": self.updated_at}
+        serialized_row = json.dumps(document_row, default=str)
+        return serialized_row
+
+def __init__(self, id, user_id, data, name, created_at, updated_at):
+    self.id = id
+    self.user_id = user_id 
+    self.data = data
+    self.name = name
+    self.created_at = created_at
+    self.updated_at = updated_at 

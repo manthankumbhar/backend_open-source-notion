@@ -19,7 +19,7 @@ def upsert_document(user_id):
     db.session.add(document)
     db.session.commit()
     document_row = db.session.query(Document).filter(Document.id == document.id).first()
-    return vars(document_row)
+    return document_row
 
 def get_document_by_id(id):
     documents = db.session.query(Document).filter(Document.id == id)
