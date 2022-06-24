@@ -1,7 +1,7 @@
 from models.db import db
 from models.User import User
 from models.Document import Document
-from models.Shared_document import Shared_document
+from models.SharedDocument import SharedDocument
 
 def get_user_by_user_id(user_id):
     users = db.session.query(User).filter(User.id == user_id)
@@ -61,34 +61,34 @@ def update_document_data_by_document_id(document_id, data_from_user):
     return {'data updated'}
 
 def upsert_shared_document(document_id, email):
-    shared_document = Shared_document(
+    shared_document = SharedDocument(
         document_id = document_id,
         email = email
     )
     db.session.add(shared_document)
     db.session.commit()
-    document_row = db.session.query(Shared_document).filter(Shared_document.id == shared_document.id).first()
+    document_row = db.session.query(SharedDocument).filter(SharedDocument.id == shared_document.id).first()
     return document_row
 
 def upsert_shared_document_with_public(document_id, email, public):
-    shared_document = Shared_document(
+    shared_document = SharedDocument(
         document_id = document_id,
         email = email,
         public = public
     )
     db.session.add(shared_document)
     db.session.commit()
-    document_row = db.session.query(Shared_document).filter(Shared_document.id == shared_document.id).first()
+    document_row = db.session.query(SharedDocument).filter(SharedDocument.id == shared_document.id).first()
     return document_row
 
 def update_shared_document(document_id, email, public):
-    shared_document = db.session.query(Shared_document).filter(Shared_document.document_id == document_id, Shared_document.email == email).first()
+    shared_document = db.session.query(SharedDocument).filter(SharedDocument.document_id == document_id, SharedDocument.email == email).first()
     shared_document.public = public
     db.session.commit()
     return {'data updated'}
 
 def get_shared_document_by_id_and_email(id, email):
-    shared_document = db.session.query(Shared_document).filter(Shared_document.document_id == id, Shared_document.email == email)
+    shared_document = db.session.query(SharedDocument).filter(SharedDocument.document_id == id, SharedDocument.email == email)
     if shared_document.count() <= 0:
         return None
     if shared_document.count() == 1:
