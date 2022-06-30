@@ -54,10 +54,9 @@ def get_document_data(document_id):
     user_id_from_document_row = str(document_row.user_id)
     document_owner_email = state_machine.get_user_by_user_id(user_id_from_document_row)['email']
     owner_shared_document_row = state_machine.get_shared_document_by_id_and_email(document_id, document_owner_email)
-    if owner_shared_document_row is None:
-        return jsonify({'message':'unauthorized request.'}), 403
-    if owner_shared_document_row.public == True:
-        return jsonify(document_row.__serialize__()), 200
+    if owner_shared_document_row is not None:
+        if owner_shared_document_row.public == True:
+                return jsonify(document_row.__serialize__()), 200
     auth_header = request.headers.get('Authorization')
     if auth_header is None:
         return jsonify({'message':'unauthorized request.'}), 403
