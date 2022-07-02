@@ -23,8 +23,9 @@ def get_documents(payload):
     user_id = args.get('user_id')
     if user_id != user_id_from_authorization_header:
         return jsonify({'message':'unauthorized request.'}), 403
-    document_id_array = state_machine.get_all_documents_by_user_id(user_id)
-    return jsonify(document_id_array), 200
+    email = state_machine.get_user_by_user_id(user_id)['email']
+    documents_array = state_machine.get_all_documents_by_user_id(user_id, email)
+    return jsonify(documents_array), 200
 
 @documents.route('/<document_id>', methods=['POST'])
 @utils.server_error_check

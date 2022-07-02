@@ -40,12 +40,18 @@ def get_document_by_id(id):
     if documents.count() > 1:
         raise Exception({'error':'voilates the unique ability!'})
 
-def get_all_documents_by_user_id(user_id):
+def get_all_documents_by_user_id(user_id, email):
     documents = db.session.query(Document).filter(Document.user_id == user_id).all()
     document_id_array = []
     for document in documents:
-        document_id_array.append({'id':vars(document)['id'], 'name':vars(document)['name']})
-    return document_id_array
+        document_id_array.append({'id':document.id, 'name':document.name})
+
+    shared_documents = db.session.query(SharedDocument).filter(SharedDocument.email == email, SharedDocument.public == None)
+    shared_documents_array = []
+    for shared_document in shared_documents:
+        document_name = get_document_by_id(shared_document.document_id).name
+        shared_documents_array.append({'id':shared_document.document_id, 'name':document_name})
+    return {"shared_documents":shared_documents_array, "documents": document_id_array}
 
 def update_document_by_document_id(document_id, data_from_user, doc_name_from_user):
     document = db.session.query(Document).filter(Document.id == document_id).first()
