@@ -66,6 +66,11 @@ def update_document_data_by_document_id(document_id, data_from_user):
     db.session.commit()
     return {'data updated'}
 
+def delete_document(document_id):
+    document = db.session.query(Document).filter(Document.id == document_id).first()
+    db.session.delete(document)
+    db.session.commit()
+
 def upsert_shared_document(document_id, email):
     shared_document = SharedDocument(
         document_id = document_id,

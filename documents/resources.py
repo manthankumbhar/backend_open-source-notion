@@ -96,3 +96,14 @@ def share_document(document_id, payload):
     else:
         state_machine.upsert_shared_document(document_id, shared_user_email)    
     return jsonify({'message':'Document shared.'}), 200
+
+@documents.route('/<document_id>', methods=['DELETE'])
+@utils.server_error_check
+@utils.authorize_user
+def delete_document(document_id,payload):
+    user_id = payload['user_id']
+    user_id_from_document_row = str(state_machine.get_document_by_id(document_id).user_id)
+    if user_id != user_id_from_document_row:
+        return jsonify({'message':'unauthorized request.'}), 403
+    state_machine.delete_document(document_id)
+    return jsonify({"message":"Document deleted."}), 200
