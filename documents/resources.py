@@ -72,6 +72,17 @@ def get_document_data(document_id):
     else:
         return jsonify({'message':'unauthorized request.'}), 403
 
+@documents.route('/<document_id>', methods=['DELETE'])
+@utils.server_error_check
+@utils.authorize_user
+def delete_document(document_id,payload):
+    user_id = payload['user_id']
+    user_id_from_document_row = str(state_machine.get_document_by_id(document_id).user_id)
+    if user_id != user_id_from_document_row:
+        return jsonify({'message':'unauthorized request.'}), 403
+    state_machine.delete_document(document_id)
+    return jsonify({"message":"Document deleted."}), 200
+
 @documents.route('/<document_id>/share', methods=['POST'])
 @utils.server_error_check
 @utils.authorize_user
